@@ -78,34 +78,41 @@ read_articles <- function(article_urls){
 
 # Putting it all together 
 years <- as.character(seq(2018,2024, 1))
-scrape_polizei <- function(archive_url = 'https://www.berlin.de/polizei/polizeimeldungen/archiv/',
-                           years){
-  # create baseurls per year
-  baseurls <- paste0(archive, years)
+archive_url = 'https://www.berlin.de/polizei/polizeimeldungen/archiv/'
+baseurls <- paste0(archive_url, years)
+
+counter = 1
+all_pages <- sapply(baseurls, function(baseurl){
+  all_pages <-  get_all_pages(base_page_url = baseurl)
   
-  all_pages <- sapply(baseurls, get_all_pages, simplify = T, USE.NAMES = F) 
-  
-  all_article_urls <- sapply(unlist(all_pages), function(page){
-    get_article_urls(page)
-    
-    Sys.sleep(2)
+  counter = counter +1
+  if (counter %% 5 == 0){
+    print('I will now sleep for 60 seconds')
+    for (i  in 59:1) {
+      Sys.sleep(1)
+      print(paste('remaining seconds:', i))
+    }
+  }
+  return(all_pages)
   })
-  return(all_article_urls)
+  
+all_pages <- unname(unlist(all_pages))
+
+all_article_urls <- list()
+for(page in 1:length(all_pages[1:10])){
+  result[page] <- list(get_article_urls(t[page]))
+  Sys.sleep(2)
+  print('did a thing')
+  
+  if (page %% 5 == 0) {
+    print('I will now sleep for 60 seconds')
+    for (i  in 59:1) {
+      Sys.sleep(1)
+      print(paste('remaining seconds:', i))
+    }
+    
+  }
 }
 
-scrape_polizei()
 
-t <- sapply(c('https://www.berlin.de/polizei/polizeimeldungen/archiv/2022', 
-         'https://www.berlin.de/polizei/polizeimeldungen/archiv/2023'), get_all_pages)
-
-sapply(unname(unlist(t))[1:4], print)
-
-all_article_urls <- sapply(sample(unname(unlist(t)), 2), function(page){
-  result <- get_article_urls(page)
-  
-  Sys.sleep(2)
-  
-  return(result)
-})
-
-as.list(all_article_urls)
+ 
